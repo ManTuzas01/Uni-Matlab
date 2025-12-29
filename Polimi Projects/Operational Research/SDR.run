@@ -1,0 +1,14 @@
+model SDR.mod;
+data SDR.dat;
+option solver gurobi;
+solve;
+display total_value;
+display x;
+display y;
+
+for {j in DEBRIS: sum {i in DEBRIS: i != j} x[i,j] < 0.5 and y[j] > 0.5}
+    printf "First removed debris: %s\n", j;
+
+display {i in DEBRIS, j in DEBRIS: x[i,j] > 0.5} x[i,j];
+
+display fuel_used;
