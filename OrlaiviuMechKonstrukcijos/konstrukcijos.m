@@ -131,7 +131,7 @@ fprintf('Va = %.3f m/s\n', Va)
 fprintf('Vc = %.3f m/s (%.3f kt)\n', Vc, Vc_kt)
 fprintf('Vd = %.3f m/s (%.3f kt)\n', Vd, Vd_kt)
 
-%% V-n gaubiamoji + gust envelope
+%% V-n gaubiamoji
 
 % -----------------------------
 % MANEVRINE GAUBIAMOJI
@@ -287,46 +287,24 @@ fprintf('n_gust_neg_Vc = %.3f\n', n_gust_neg_Vc)
 fprintf('n_gust_pos_Vd = %.3f\n', n_gust_pos_Vd)
 fprintf('n_gust_neg_Vd = %.3f\n', n_gust_neg_Vd)
 
-% -----------------------------
-% BRAIZYMAS
-% -----------------------------
-%% DARK MODE GRAFIKAS
-
-bg = [0.08 0.08 0.08];     % tamsus fonas
-axis_col = [0.9 0.9 0.9];  % ašių ir teksto spalva
-grid_col = [0.35 0.35 0.35];
-
-set(groot,'defaultFigureColor',bg)
-set(groot,'defaultAxesColor',bg)
-
-set(groot,'defaultAxesXColor',axis_col)
-set(groot,'defaultAxesYColor',axis_col)
-
-set(groot,'defaultTextColor',axis_col)
-
-set(groot,'defaultAxesGridColor',grid_col)
-set(groot,'defaultAxesMinorGridColor',grid_col)
-
-set(groot,'defaultAxesFontSize',12)
-set(groot,'defaultAxesLineWidth',1.2)
-
-set(groot,'defaultLegendTextColor',axis_col)
-set(groot,'defaultLegendColor',bg)
-set(groot,'defaultLegendEdgeColor',axis_col)
+%% Braizymas 
 
 figure;
 hold on
 grid on
 box on
-set(gca,'GridAlpha',0.35)
-set(gca,'MinorGridAlpha',0.25)
+
+set(gca,'FontSize',12)
+set(gca,'LineWidth',1.2)
 set(gca,'GridLineStyle','-')
 set(gca,'MinorGridLineStyle',':')
+set(gca,'GridAlpha',0.25)
+set(gca,'MinorGridAlpha',0.15)
 
-maneuver_col = [0 0.85 1];     % cyan
-gust_col     = [1 0.55 0];     % orange
-env_col      = [1 1 1];        % white
-point_col    = [1 1 0];        % yellow
+% Simple 3-color scheme
+maneuver_col = [0 0 1];   % blue
+gust_col     = [1 0 0];   % red
+env_col      = [0 0 0];   % black
 
 % Manevrine gaubiamoji
 h_man = plot(V1,n1,'Color',maneuver_col,'LineWidth',2);
@@ -335,27 +313,27 @@ plot(V3,n3,'Color',maneuver_col,'LineWidth',2)
 plot(V4,n4,'Color',maneuver_col,'LineWidth',2)
 plot([Vd Vd],[0 n_pos],'Color',maneuver_col,'LineWidth',2)
 
-% Gust envelope - raudona bruksniuota
+% Gust envelope
 h_gust = plot(Vg1,n_gust_pos_1,'--','Color',gust_col,'LineWidth',2);
 plot(Vg2,n_gust_pos_2,'--','Color',gust_col,'LineWidth',2)
 plot(Vg1,n_gust_neg_1,'--','Color',gust_col,'LineWidth',2)
 plot(Vg2,n_gust_neg_2,'--','Color',gust_col,'LineWidth',2)
 
-% Galutine isorine flight envelope - juoda stora
-h_env = plot(V_env,n_env_pos,'Color',env_col,'LineWidth',3);
-plot(V_env,n_env_neg,'Color',env_col,'LineWidth',3)
-plot([Vd Vd],[n_env_neg(end) n_env_pos(end)],'Color',env_col,'LineWidth',3)
+% Galutine isorine flight envelope
+h_env = plot(V_env,n_env_pos,'Color',env_col,'LineWidth',2.5);
+plot(V_env,n_env_neg,'Color',env_col,'LineWidth',2.5)
+plot([Vd Vd],[n_env_neg(end) n_env_pos(end)],'Color',env_col,'LineWidth',2.5)
 
 % Taskai
-plot(A(1),A(2),'o','Color',point_col,'MarkerFaceColor',point_col)
-plot(B(1),B(2),'o','Color',point_col,'MarkerFaceColor',point_col)
-plot(C(1),C(2),'o','Color',point_col,'MarkerFaceColor',point_col)
-plot(D(1),D(2),'o','Color',point_col,'MarkerFaceColor',point_col)
-plot(E(1),E(2),'o','Color',point_col,'MarkerFaceColor',point_col)
-plot(F(1),F(2),'o','Color',point_col,'MarkerFaceColor',point_col)
+plot(A(1),A(2),'ko','MarkerFaceColor','k')
+plot(B(1),B(2),'ko','MarkerFaceColor','k')
+plot(C(1),C(2),'ko','MarkerFaceColor','k')
+plot(D(1),D(2),'ko','MarkerFaceColor','k')
+plot(E(1),E(2),'ko','MarkerFaceColor','k')
+plot(F(1),F(2),'ko','MarkerFaceColor','k')
 
 % Vb taskas
-plot(Vb,n_B,'o','Color',[1 0 1],'MarkerFaceColor',[1 0 1],'MarkerSize',8)
+plot(Vb,n_B,'ko','MarkerFaceColor','k','MarkerSize',8)
 
 % Tasku pavadinimai
 text(A(1), A(2), '  Vs', 'FontSize', 10)
@@ -368,21 +346,20 @@ text(Vb, n_B, '  Vb', 'FontSize', 10)
 
 % Pagalbines linijos
 yline(0, 'k-')
-yline(1, '--k')
-xline(Vs, '--k')
-xline(Va, '--k')
-xline(Vb, '--m')
-xline(Vc, '--k')
-xline(Vd, '--k')
-
+yline(1, 'k--')
+xline(Vs, 'k--')
+xline(Va, 'k--')
+xline(Vb, 'k--')
+xline(Vc, 'k--')
+xline(Vd, 'k--')
 
 legend([h_man h_gust h_env], ...
-       {'Manevrų gaubiamoji','Gūsinė gaubiamoji','Pilnoji skrydio gaubiamoji'}, ...
+       {'Manevrų gaubiamoji','Gūsinė gaubiamoji','Pilnoji skrydžio gaubiamoji'}, ...
        'Location','northwest')
+
 xlabel('Greitis V [m/s]')
 ylabel('Perkrovos koeficientas n')
 title('Pilna perkrovos gaubiamoji')
-
 
 xlim([0, 1.1*Vd])
 
@@ -391,6 +368,8 @@ y_max = max([n_env_pos, n_gust_pos, n_man_pos]) * 1.15;
 ylim([y_min, y_max])
 
 hold off
+
+
 %% Grafikai
 % Plot distributed lift load q(y) over the wing from XFLR5 export
 % Put your XFLR5 txt data into a file, e.g. 'xflr5_results.txt'
@@ -431,6 +410,36 @@ BM    = BM(idx);
 % q [N/m]
 q = qInf .* chord .* Cl;
 
+%% ------------------------------------------------------------
+% SPYRIO ITAKA I LENKIMO MOMENTA - VIENAI SPARNO PUSEI
+% ------------------------------------------------------------
+
+idx_half = y >= 0;
+y_half   = y(idx_half);
+q_half   = q(idx_half);
+BM_half  = BM(idx_half);
+
+idx_out = y_half >= L_sp;
+
+% spyrio vertikali reakcija - perimta isorines dalies apkrova
+R_sp = trapz(y_half(idx_out), q_half(idx_out));
+
+% spyrio asine jega
+F_sp = R_sp / sin(alpha_rad);
+
+% pakoreguotas momentas
+BM_eff_half = BM_half;
+
+idx_in = y_half <= L_sp;
+BM_eff_half(idx_in) = BM_half(idx_in) - R_sp .* (L_sp - y_half(idx_in));
+
+fprintf('\nSPYRIO ITAKA:\n');
+fprintf('----------------------------------------\n');
+fprintf('R_sp = %.3f N\n', R_sp);
+fprintf('F_sp = %.3f N\n', F_sp);
+fprintf('M_root be spyrio = %.3f Nm\n', BM_half(1));
+fprintf('M_root su spyriu = %.3f Nm\n', BM_eff_half(1));
+
 % grafikas
 figure;
 plot(y, q, 'LineWidth', 1.5);
@@ -441,24 +450,200 @@ title('Wing load distribution');
 
 % lenkimo momentas
 figure;
-plot(y, BM, 'LineWidth', 1.5);
+plot(y_half, BM_half, 'LineWidth', 1.2); hold on;
+plot(y_half, BM_eff_half, 'LineWidth', 1.8);
+xline(0,'k--');
+xline(L_sp,'k--');
 grid on;
 xlabel('Spanwise position y [m]');
 ylabel('Bending moment M(y) [N m]');
 title('Wing bending moment diagram');
+legend('Be spyrio','Su spyriu','Location','best');
 
-% galutinis
+%% ============================================================
+%LONZERONO SKAICIAVIMAS
+
+H_spar = H_lonz;   % [m] sparo aukstis imamas is 1 kodo
+
+% ------------------------------------------------------------
+% 2) KRITINIS LENKIMO MOMENTAS IS XFLR5 DUOMENU
+% ------------------------------------------------------------
+% BM = data(:, col_BM);
+
+% Imam didziausia absoliutine reiksme kaip kritine
+[M_abs, idx_M] = max(abs(BM_eff_half));
+M = M_abs;
+y_crit = y_half(idx_M);
+
+
+N = 0;              % [N] asine jega (siame variante ignoruojama)
+
+fprintf('\nSPARO STIPRUMO SKAICIAVIMUI:\n');
+fprintf('----------------------------------------\n');
+fprintf('H_spar = %.6f m (is H_lonz)\n', H_spar);
+fprintf('Kritinis lenkimo momentas M = %.3f Nm\n', M);
+fprintf('Jis yra ties y = %.3f m\n', y_crit);
+
+%% ------------------------------------------------------------
+% 3) SKERSPJUvio PRIELAIDOS
+% ------------------------------------------------------------
+
+x1 = 0.20 * H_spar;      % lentynos plotis [m]
+x2 = 0.02 * H_spar;      % sieneles storis [m]
+x4 = 2 * x1;             % apsiuvos efektyvus plotis [m]
+
+t_skin = 0.0015;         % apsiuvos storis [m]
+
+% web aukstis + lentynos auksciai turi sudaryti visa sparo auksti
+y2 = 0.60 * H_spar;      % sieneles aukstis [m]
+y1 = (H_spar - y2) / 2;  % lentynos aukstis [m]
+
+fprintf('\nSKERSPJUVIO MATMENYS:\n');
+fprintf('----------------------------------------\n');
+fprintf('Lentynos plotis x1 = %.6f m\n', x1);
+fprintf('Sieneles storis x2 = %.6f m\n', x2);
+fprintf('Apsiuvos plotis x4 = %.6f m\n', x4);
+fprintf('Lentynos aukstis y1 = %.6f m\n', y1);
+fprintf('Sieneles aukstis y2 = %.6f m\n', y2);
+fprintf('Apsiuvos storis t_skin = %.6f m\n', t_skin);
+
+% sluoksniai is apacios i virsu:
+% 1 bottom skin, 2 bottom cap, 3 web, 4 top cap, 5 top skin
+b = [x4,     x1,   x2,   x1,     x4];
+t = [t_skin, y1,   y2,   y1, t_skin];
+nLayers = numel(b);
+A = b .* t;          % [m^2]
+
+%% ------------------------------------------------------------
+% 4) MEDZIAGOS
+% ------------------------------------------------------------
+E_7075 = 72e9;       % [Pa]
+E_2024 = 73e9;       % [Pa]
+E_6061 = 69e9;       % [Pa]
+
+Re_7075 = 503e6;     % [Pa]
+Re_2024 = 324e6;     % [Pa]
+Re_6061 = 275e6;     % [Pa]
+
+SF = 1.5;            % safety factor
+
+%  bottom skin, bottom cap, web, top cap, top skin
+E = [E_7075, E_2024, E_6061, E_2024, E_7075];
+
+sigma_allow = [Re_7075, Re_2024, Re_6061, Re_2024, Re_7075] / SF;
+
+%% ------------------------------------------------------------
+% 5) BAZINIAI SKERSPJUVIO PARAMETRAI
+% ------------------------------------------------------------
+B_i = A .* E;        % [N]
+B   = sum(B_i);      % [N]
+
+H = sum(t);          % bendras aukstis
+y_cent = zeros(1, nLayers);
+
+y_running = 0;
+for i = 1:nLayers
+    y_cent(i) = y_running + t(i)/2;
+    y_running = y_running + t(i);
+end
+
+%% ------------------------------------------------------------
+% 6) NEUTRALIOJI ASIS
+% ------------------------------------------------------------
+y_NA = sum(B_i .* y_cent) / B;   % [m]
+
+% atstumas nuo NA
+y_iN = y_cent - y_NA;
+
+%% ------------------------------------------------------------
+% 7) LENKIMO STANDIS
+% ------------------------------------------------------------
+I_cent = (b .* t.^3) / 12;
+I_i    = I_cent + A .* (y_iN.^2);
+
+D_i = E .* I_i;
+D   = sum(D_i);
+
+%% ------------------------------------------------------------
+% 8) ITEMPIAI
+%    sigma_i = E_i * (N/B + M*y_i/D)
+% ------------------------------------------------------------
+epsilon_N = N / B;
+sigma_i   = E .* (epsilon_N + (M .* y_iN) / D);   % [Pa]
+
+% krastiniai pluostai
+y_top = H - y_NA;
+y_bot = -y_NA;
+
+sigma_bot = E(1)   * (epsilon_N + M*y_bot/D);
+sigma_top = E(end) * (epsilon_N + M*y_top/D);
+
+%% ------------------------------------------------------------
+% 9) ISNAUDOJIMAS
+% ------------------------------------------------------------
+util_sigma_layers = abs(sigma_i) ./ sigma_allow;
+util_sigma_bot    = abs(sigma_bot) / sigma_allow(1);
+util_sigma_top    = abs(sigma_top) / sigma_allow(end);
+
+%% ------------------------------------------------------------
+% 10) REZULTATU ISVEDIMAS
+% ------------------------------------------------------------
+fprintf('\n--- MULTILAYER SECTION STRENGTH CHECK (NORMAL STRESS) ---\n');
+fprintf('Neutral axis from bottom y_NA = %.6f m\n', y_NA);
+fprintf('Axial stiffness B             = %.3e N\n', B);
+fprintf('Bending stiffness D           = %.3e Nm^2\n', D);
+fprintf('Critical moment M             = %.3f Nm\n', M);
+fprintf('Critical location y           = %.3f m\n\n', y_crit);
+
+for i = 1:nLayers
+    fprintf(['Layer %d: A = %.3e m^2, y_cent = %.6f m, ' ...
+             'sigma = %+8.2f MPa, util = %.3f\n'], ...
+        i, A(i), y_cent(i), sigma_i(i)/1e6, util_sigma_layers(i));
+end
+
+fprintf('\nExtreme fibres:\n');
+fprintf('Bottom sigma = %+8.2f MPa, utilisation = %.3f\n', ...
+    sigma_bot/1e6, util_sigma_bot);
+fprintf('Top    sigma = %+8.2f MPa, utilisation = %.3f\n', ...
+    sigma_top/1e6, util_sigma_top);
+
+%% ------------------------------------------------------------
+% 11) ITEMPIU PASISKIRSTYMO GRAFIKAS sigma(y)
+% ------------------------------------------------------------
+y_iface = [0, cumsum(t)];
+
+nPts = 300;
+y_vec = linspace(0, H, nPts);
+sigma_y = zeros(size(y_vec));
+
+for k = 1:nPts
+    yy = y_vec(k);
+
+    idx = find(yy >= y_iface(1:end-1) & yy <= y_iface(2:end), 1, 'first');
+
+    % jei del apvalinimo paskutinis taskas nepapuola
+    if isempty(idx)
+        idx = nLayers;
+    end
+
+    y_rel = yy - y_NA;
+    epsilon_y = epsilon_N + (M * y_rel) / D;
+    sigma_y(k) = E(idx) * epsilon_y;
+end
+
+sigma_MPa = -sigma_y / 1e6;
+
 figure;
-subplot(2,1,1);
-plot(y, q, 'LineWidth', 1.5);
+hold on;
 grid on;
-xlabel('Spanwise position y [m]');
-ylabel('q(y) [N/m]');
-title('Wing load distribution');
+plot(sigma_MPa, y_vec, 'LineWidth', 1.8);
 
-subplot(2,1,2);
-plot(y, BM, 'LineWidth', 1.5);
-grid on;
-xlabel('Spanwise position y [m]');
-ylabel('M(y) [N m]');
-title('Wing bending moment diagram');
+xline(0, '--k', 'LineWidth', 1);
+yline(y_NA, ':k', 'LineWidth', 1);
+
+xlabel('\sigma [MPa]');
+ylabel('y [m] (from bottom of spar)');
+title('Normal stress distribution \sigma(y) in spar cross-section');
+
+set(gca, 'YDir', 'normal');
+hold off;
