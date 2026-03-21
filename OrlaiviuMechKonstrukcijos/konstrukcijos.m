@@ -21,6 +21,8 @@ L_kuro = 1.500;     % [m]
 H_kuro = 0.128067;  % [m]
 w_kuro = 1.036687;  % [m]
 
+n_sk = n_e * f;               % [-]
+
 %% 2.1 Sparno geometriniai parametrai (pagal pavyzdi)
 
 % 1) Sparno plotas
@@ -62,6 +64,35 @@ alpha_deg = rad2deg(alpha_rad);     % [deg]
 V_kuro = L_kuro * H_kuro * w_kuro;  % [m^3]
 litrai = V_kuro * 1000;             % [L]
 
+
+%% Kuro bako apkrova sparnui
+
+rho_kuro = 720;   % [kg/m^3] pvz. AVGAS; jei reikia, pakeisk
+% Jei naudoji Jet-A, gali imti ~800 kg/m^3
+
+m_kuro = rho_kuro * V_kuro;      % [kg]
+W_kuro = m_kuro * g;             % [N]
+
+% Jei tavo V_kuro yra VIENO sparno bako tūris -> palik taip
+W_kuro_wing = W_kuro;            % [N]
+
+% Jei tavo V_kuro yra ABIEJŲ sparnų bendras tūris, naudok vietoje:
+% W_kuro_wing = W_kuro / 2;
+
+% Projektinė inercinė kuro apkrova
+W_kuro_design = W_kuro_wing * n_sk;   % [N]
+
+% Tolygiai paskirstyta apkrova per bako ilgį
+q_kuro_const = W_kuro_design / L_kuro;   % [N/m]
+
+fprintf('\nKURO APKROVA:\n')
+fprintf('----------------------------------------\n')
+fprintf('Kuro tankis rho_kuro = %.1f kg/m^3\n', rho_kuro)
+fprintf('Kuro masė viename sparne = %.3f kg\n', W_kuro_wing/g)
+fprintf('Kuro svoris viename sparne = %.3f N\n', W_kuro_wing)
+fprintf('Projektinis kuro svoris = %.3f N\n', W_kuro_design)
+fprintf('Paskirstyta kuro apkrova q_kuro = %.3f N/m\n', q_kuro_const)
+
 %% Perkrovu ir greiciu skaiciavimas
 
 rho = 1.225;                  % [kg/m^3]
@@ -69,7 +100,7 @@ rho = 1.225;                  % [kg/m^3]
 % Trukstami dydziai
 W_N = m * g;                  % [N]
 W_kN = W_N / 1000;            % [kN]
-n_sk = n_e * f;               % [-]
+
 L_free = L - L_sp;            % [m]
 
 % Vienetu konvertavimas i imperial (CS-23 formulems)
@@ -172,12 +203,22 @@ y_right = linspace(min(y_right_raw), max(y_right_raw), 400);
 % Interpoliuojam apkrova
 q_right = interp1(y_right_raw, q_right_raw, y_right, 'pchip');
 
-% Kirpimo jega:
-% ties sparno galu V = 0, todel integruojam nuo galo link saknies
-V_right = flip(cumtrapz(flip(y_right), flip(q_right)));
+%% Kuro apkrovos paskirstymas per pusę sparno
 
-% Lenkimo momentas:
-% ties sparno galu M = 0, todel vel integruojam nuo galo link saknies
+q_fuel = zeros(size(y_right));   % [N/m]
+
+% Prielaida: kuro bakas eina nuo saknies iki y = L_kuro
+idx_fuel = (y_right >= 0) & (y_right <= L_kuro);
+q_fuel(idx_fuel) = q_kuro_const;
+
+% Bendra paskirstyta apkrova:
+% aukštyn teigiama aero apkrova, žemyn neigiama kuro apkrova
+q_total = q_right - q_fuel;
+
+% Kirpimo jega iš bendros apkrovos
+V_right = flip(cumtrapz(flip(y_right), flip(q_total)));
+
+% Lenkimo momentas iš bendros apkrovos
 M_right = flip(cumtrapz(flip(y_right), flip(V_right)));
 
 
@@ -218,15 +259,7 @@ y_crit = L_sp;   % [m]
 V_crit = interp1(y_right, V_right_sp, y_crit, 'linear');
 M_crit = interp1(y_right, M_right_sp, y_crit, 'linear');
 
-% Jei nori ignoruoti ašinę jėgą sparo pjūvyje:
 N_crit = 0;
-
-% Jei nori įtraukti spyrio horizontalią dedamąją kaip ašinę jėgą sparui,
-% gali vietoje viršutinės eilutės naudoti, pvz.:
-% N_crit = -F_sp_h;
-%
-% Minusas reiškia gniuždymą, jei laikome tempimą teigiamu.
-% Kol neaiški tiksli jėgų schema, saugiausia pradžiai palikti N_crit = 0.
 
 %% ------------------------------------------------------------------------
 %  GEOMETRY OF MULTILAYER SPAR SECTION
@@ -532,3 +565,25 @@ xlabel('Pusės sparno koordinatė y [m]')
 ylabel('Lenkimo momentas M(y) [N·m]')
 title('Lenkimo momentas prieš ir po spyrio')
 legend('Be spyrio','Su spyriu','Spyrio vieta')
+
+%% CL pasiskirstymas per sparno mostą
+
+figure;
+plot(y_x, Cl_x, 'o-', 'LineWidth', 1.2)
+grid on
+xlabel('Sparno koordinatė y [m]')
+ylabel('Vietinis keliamojo koeficientas C_L(y) [-]')
+title('C_L pasiskirstymas per sparno mostą')
+
+%% Aero + kuro + bendra apkrova
+
+figure;
+plot(y_right, q_right, 'LineWidth', 1.5)
+hold on
+plot(y_right, -q_fuel, 'LineWidth', 1.5)
+plot(y_right, q_total, 'LineWidth', 1.8)
+grid on
+xlabel('Pusės sparno koordinatė y [m]')
+ylabel('Paskirstyta apkrova q(y) [N/m]')
+title('Aerodinaminė, kuro ir bendra sparno apkrova')
+legend('Aerodinaminė apkrova', 'Kuro apkrova', 'Bendra apkrova')
