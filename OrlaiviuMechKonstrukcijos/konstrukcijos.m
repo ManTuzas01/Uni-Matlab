@@ -67,8 +67,7 @@ litrai = V_kuro * 1000;             % [L]
 
 %% Kuro bako apkrova sparnui
 
-rho_kuro = 720;   % [kg/m^3] pvz. AVGAS; jei reikia, pakeisk
-% Jei naudoji Jet-A, gali imti ~800 kg/m^3
+rho_kuro = 720;   % [kg/m^3] Assuminam kad cia AVGAS
 
 m_kuro = rho_kuro * V_kuro;      % [kg]
 W_kuro = m_kuro * g;             % [N]
@@ -264,7 +263,7 @@ N_crit = 0;
 %% ------------------------------------------------------------------------
 %  GEOMETRY OF MULTILAYER SPAR SECTION
 % -------------------------------------------------------------------------
-H_spar = 0.21225;     % total spar height [m]
+H_spar = 0.15;     % total spar height [m]
 
 x1 = 0.2;             % spar cap width [m]
 x2 = 0.03;            % web thickness [m]
@@ -587,3 +586,54 @@ xlabel('Pusės sparno koordinatė y [m]')
 ylabel('Paskirstyta apkrova q(y) [N/m]')
 title('Aerodinaminė, kuro ir bendra sparno apkrova')
 legend('Aerodinaminė apkrova', 'Kuro apkrova', 'Bendra apkrova')
+
+
+%% VISU APKROVŲ IR MOMENTŲ GRAFINIS ATVAIZDAVIMAS
+
+% 1) Aerodinaminė apkrova
+figure;
+plot(y_right, q_right, 'LineWidth', 1.5)
+grid on
+xlabel('Pusės sparno koordinatė y [m]')
+ylabel('q_{lift}(y) [N/m]')
+title('Aerodinaminės apkrovos diagrama')
+
+% 2) Kuro apkrova
+figure;
+plot(y_right, q_fuel, 'LineWidth', 1.5)
+grid on
+xlabel('Pusės sparno koordinatė y [m]')
+ylabel('q_{fuel}(y) [N/m]')
+title('Kuro apkrovos diagrama')
+
+% 3) Bendra paskirstyta apkrova
+figure;
+plot(y_right, q_total, 'LineWidth', 1.5)
+grid on
+xlabel('Pusės sparno koordinatė y [m]')
+ylabel('q_{total}(y) [N/m]')
+title('Bendros paskirstytos apkrovos diagrama')
+
+% 4) Kirpimo jėga prieš ir po spyrio
+figure;
+plot(y_right, V_right, 'LineWidth', 1.2)
+hold on
+plot(y_right, V_right_sp, 'LineWidth', 1.5)
+xline(L_sp, '--k')
+grid on
+xlabel('Pusės sparno koordinatė y [m]')
+ylabel('V(y) [N]')
+title('Kirpimo jėgos diagrama')
+legend('Be spyrio', 'Su spyriu', 'Spyrio vieta')
+
+% 5) Lenkimo momentas prieš ir po spyrio
+figure;
+plot(y_right, M_right, 'LineWidth', 1.2)
+hold on
+plot(y_right, M_right_sp, 'LineWidth', 1.5)
+xline(L_sp, '--k')
+grid on
+xlabel('Pusės sparno koordinatė y [m]')
+ylabel('M(y) [N·m]')
+title('Lenkimo momento diagrama')
+legend('Be spyrio', 'Su spyriu', 'Spyrio vieta')
