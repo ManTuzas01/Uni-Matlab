@@ -59,7 +59,7 @@ alpha_deg = rad2deg(alpha_rad);     % [deg]
 
 %% Kuro bako skaiciavimas
 
-V_kuro = 0.1;  % [m^3]
+V_kuro = L_kuro * H_kuro * w_kuro;  % [m^3]
 litrai = V_kuro * 1000;             % [L]
 
 %% Perkrovu ir greiciu skaiciavimas
@@ -117,15 +117,15 @@ n_lim_pos = n_pos * ones(size(V_lim));
 n_lim_neg = n_neg * ones(size(V_lim));
 
 % Pagrindiniai taskai
-A = [Vs, 1];
-B = [Va, n_pos];
-C = [Vc, n_pos];
-D = [Vd, n_pos];
+A_pt = [Vs, 1];
+B_pt = [Va, n_pos];
+C_pt = [Vc, n_pos];
+D_pt = [Vd, n_pos];
 
-A2 = [Vs, -1];
-B2 = [Va, n_neg];
-C2 = [Vc, n_neg];
-D2 = [Vd, n_neg];
+A2_pt = [Vs, -1];
+B2_pt = [Va, n_neg];
+C2_pt = [Vc, n_neg];
+D2_pt = [Vd, n_neg];
 
 %% XFLR5 duomenu nuskaitymas ir braizymas
 
@@ -206,6 +206,195 @@ idx_sp = y_right <= L_sp;
 V_right_sp(idx_sp) = V_right_sp(idx_sp) - F_sp_v;
 M_right_sp(idx_sp) = M_right_sp(idx_sp) - F_sp_v .* (L_sp - y_right(idx_sp));
 
+
+%% =========================================================
+%  ITEMPIŲ SKAIČIAVIMAS KRITINIAME PJŪVYJE (TIES SPYRIU)
+% =========================================================
+
+% Kritinis taškas – spyrio tvirtinimo vieta
+y_crit = L_sp;   % [m]
+
+% Vidinės jėgos kritiniame pjūvyje
+V_crit = interp1(y_right, V_right_sp, y_crit, 'linear');
+M_crit = interp1(y_right, M_right_sp, y_crit, 'linear');
+
+% Jei nori ignoruoti ašinę jėgą sparo pjūvyje:
+N_crit = 0;
+
+% Jei nori įtraukti spyrio horizontalią dedamąją kaip ašinę jėgą sparui,
+% gali vietoje viršutinės eilutės naudoti, pvz.:
+% N_crit = -F_sp_h;
+%
+% Minusas reiškia gniuždymą, jei laikome tempimą teigiamu.
+% Kol neaiški tiksli jėgų schema, saugiausia pradžiai palikti N_crit = 0.
+
+%% ------------------------------------------------------------------------
+%  GEOMETRY OF MULTILAYER SPAR SECTION
+% -------------------------------------------------------------------------
+H_spar = 0.21225;     % total spar height [m]
+
+x1 = 0.2;             % spar cap width [m]
+x2 = 0.03;            % web thickness [m]
+x4 = 2*x1;            % skin width [m]
+
+t_skin = 0.0015;      % skin thickness (top & bottom) [m]
+y2_sec = 0.13;        % web height [m]
+y1_sec = (H_spar - y2_sec)/2;   % spar cap thickness [m]
+
+fprintf('\nKRITINIO PJŪVIO GEOMETRIJA:\n')
+fprintf('Lentynos plotis x1 = %.6f m\n', x1)
+fprintf('Sienelės plotis x2 = %.6f m\n', x2)
+fprintf('Apsiuvos plotis x4 = %.6f m\n', x4)
+fprintf('Lentynos aukštis y1 = %.6f m\n', y1_sec)
+fprintf('Sienelės aukštis y2 = %.6f m\n', y2_sec)
+fprintf('Apsiuvos storis t_skin = %.6f m\n', t_skin)
+
+% sluoksniai iš apačios į viršų:
+% 1 apatinė apsiūva, 2 apatinė lentyna, 3 sienelė, 4 viršutinė lentyna, 5 viršutinė apsiūva
+b_sec = [x4,     x1,      x2,      x1,     x4];
+t_sec = [t_skin, y1_sec,  y2_sec,  y1_sec, t_skin];
+nLayers = numel(b_sec);
+
+A_sec = b_sec .* t_sec;   % [m^2]
+
+%% ------------------------------------------------------------------------
+%  MATERIAL DATA
+% -------------------------------------------------------------------------
+E_7075 = 72e9;       % [Pa]
+E_2024 = 73e9;       % [Pa]
+E_6061 = 69e9;       % [Pa]
+
+Re_7075 = 503e6;     % [Pa]
+Re_2024 = 324e6;     % [Pa]
+Re_6061 = 275e6;     % [Pa]
+
+SF = 1.5;
+
+E_sec = [E_7075, E_2024, E_6061, E_2024, E_7075];
+sigma_allow = [Re_7075, Re_2024, Re_6061, Re_2024, Re_7075] / SF;
+
+%% ------------------------------------------------------------------------
+%  BASIC SECTION PROPERTIES
+% -------------------------------------------------------------------------
+B_i = A_sec .* E_sec;
+B_ax = sum(B_i);
+
+H_sec = sum(t_sec);
+y_cent = zeros(1, nLayers);
+
+y_running = 0;
+for i = 1:nLayers
+    y_cent(i) = y_running + t_sec(i)/2;
+    y_running = y_running + t_sec(i);
+end
+
+%% ------------------------------------------------------------------------
+%  NEUTRAL AXIS
+% -------------------------------------------------------------------------
+y_NA = sum(B_i .* y_cent) / B_ax;
+
+% atstumai nuo neutraliosios ašies
+y_iN = y_cent - y_NA;
+
+%% ------------------------------------------------------------------------
+%  SECOND MOMENT OF AREA AND BENDING STIFFNESS
+% -------------------------------------------------------------------------
+I_cent = (b_sec .* t_sec.^3) / 12;
+I_i    = I_cent + A_sec .* (y_iN.^2);
+
+D_i = E_sec .* I_i;
+D   = sum(D_i);
+
+%% ------------------------------------------------------------------------
+%  NORMAL STRESSES IN CRITICAL SECTION
+%  sigma_i = E_i * ( N/B + M*y_i/D )
+% -------------------------------------------------------------------------
+epsilon_N = N_crit / B_ax;
+sigma_i   = E_sec .* (epsilon_N + (M_crit .* y_iN) / D);
+
+% kraštiniai taškai
+y_top = H_sec - y_NA;
+y_bot = -y_NA;
+
+sigma_bot = E_sec(1)   * (epsilon_N + M_crit * y_bot / D);
+sigma_top = E_sec(end) * (epsilon_N + M_crit * y_top / D);
+
+%% ------------------------------------------------------------------------
+%  UTILISATION
+% -------------------------------------------------------------------------
+util_sigma_layers = abs(sigma_i) ./ sigma_allow;
+util_sigma_bot    = abs(sigma_bot) / sigma_allow(1);
+util_sigma_top    = abs(sigma_top) / sigma_allow(end);
+
+%% ------------------------------------------------------------------------
+%  RESULTS
+% -------------------------------------------------------------------------
+fprintf('\nKRITINIS PJŪVIS TIES SPYRIU:\n')
+fprintf('----------------------------------------\n')
+fprintf('Pjūvio vieta y = %.3f m\n', y_crit)
+fprintf('Kirpimo jėga V_crit = %.3f N\n', V_crit)
+fprintf('Lenkimo momentas M_crit = %.3f N·m\n', M_crit)
+fprintf('Ašinė jėga N_crit = %.3f N\n', N_crit)
+
+fprintf('\nDAUGIASLUOKSNIO PJŪVIO STIPRUMO PATIKRA:\n')
+fprintf('Neutralioji ašis nuo apačios y_NA = %.6f m\n', y_NA)
+fprintf('Ašinis standumas B = %.3e N\n', B_ax)
+fprintf('Lenkimo standumas D = %.3e N·m^2\n\n', D)
+
+for i = 1:nLayers
+    fprintf(['Sluoksnis %d: A = %.3e m^2, y_cent = %.4f m, ' ...
+             'sigma = %+8.2f MPa, util = %.3f\n'], ...
+        i, A_sec(i), y_cent(i), sigma_i(i)/1e6, util_sigma_layers(i));
+end
+
+fprintf('\nKraštiniai pluoštai:\n');
+fprintf('Apatinis sigma = %+8.2f MPa, utilisation = %.3f\n', ...
+    sigma_bot/1e6, util_sigma_bot);
+fprintf('Viršutinis sigma = %+8.2f MPa, utilisation = %.3f\n', ...
+    sigma_top/1e6, util_sigma_top);
+
+% didžiausia absoliutinė įtampa
+sigma_max = max(abs([sigma_i, sigma_bot, sigma_top]));
+util_max  = max([util_sigma_layers, util_sigma_bot, util_sigma_top]);
+
+fprintf('\nDidžiausia |sigma| = %.2f MPa\n', sigma_max/1e6)
+fprintf('Didžiausias utilisation = %.3f\n', util_max)
+
+%% ------------------------------------------------------------------------
+%  NORMAL STRESS DISTRIBUTION PLOT sigma(y)
+% -------------------------------------------------------------------------
+y_iface = [0, cumsum(t_sec)];
+
+nPts = 300;
+y_vec = linspace(0, H_sec, nPts);
+sigma_y = zeros(size(y_vec));
+
+for k = 1:nPts
+    yloc = y_vec(k);
+
+    idx = find(yloc >= y_iface(1:end-1) & yloc <= y_iface(2:end), 1, 'first');
+    y_rel = yloc - y_NA;
+
+    epsilon_y = epsilon_N + (M_crit * y_rel) / D;
+    sigma_y(k) = E_sec(idx) * epsilon_y;
+end
+
+sigma_MPa = -sigma_y / 1e6;   % pagal tavo pasirinktą ženklų konvenciją
+
+figure;
+hold on
+grid on
+plot(sigma_MPa, y_vec, 'LineWidth', 1.8)
+
+xline(0, '--k', 'LineWidth', 1)
+yline(y_NA, ':k', 'LineWidth', 1)
+
+xlabel('\sigma [MPa]')
+ylabel('y [m] (nuo sparo apačios)')
+title('Normalinių įtempių pasiskirstymas kritiniame pjūvyje ties spyriu')
+
+set(gca, 'YDir', 'normal')
+
 %% Rezultatu isvedimas
 
 %% pirma dalis
@@ -276,21 +465,20 @@ xline(Vd, '--k')
 yline(0, 'k-')
 
 % Taskai
-plot(A(1),  A(2),  'ro', 'MarkerFaceColor', 'r')
-plot(B(1),  B(2),  'ro', 'MarkerFaceColor', 'r')
-plot(C(1),  C(2),  'ro', 'MarkerFaceColor', 'r')
-plot(D(1),  D(2),  'ro', 'MarkerFaceColor', 'r')
+plot(A_pt(1),  A_pt(2),  'ro', 'MarkerFaceColor', 'r')
+plot(B_pt(1),  B_pt(2),  'ro', 'MarkerFaceColor', 'r')
+plot(C_pt(1),  C_pt(2),  'ro', 'MarkerFaceColor', 'r')
+plot(D_pt(1),  D_pt(2),  'ro', 'MarkerFaceColor', 'r')
 
-plot(A2(1), A2(2), 'ro', 'MarkerFaceColor', 'r')
-plot(B2(1), B2(2), 'ro', 'MarkerFaceColor', 'r')
-plot(C2(1), C2(2), 'ro', 'MarkerFaceColor', 'r')
-plot(D2(1), D2(2), 'ro', 'MarkerFaceColor', 'r')
+plot(A2_pt(1), A2_pt(2), 'ro', 'MarkerFaceColor', 'r')
+plot(B2_pt(1), B2_pt(2), 'ro', 'MarkerFaceColor', 'r')
+plot(C2_pt(1), C2_pt(2), 'ro', 'MarkerFaceColor', 'r')
+plot(D2_pt(1), D2_pt(2), 'ro', 'MarkerFaceColor', 'r')
 
-% Uzrasai
-text(A(1),  A(2),  '  Vs')
-text(B(1),  B(2),  '  Va')
-text(C(1),  C(2),  '  Vc')
-text(D(1),  D(2),  '  Vd')
+text(A_pt(1),  A_pt(2),  '  Vs')
+text(B_pt(1),  B_pt(2),  '  Va')
+text(C_pt(1),  C_pt(2),  '  Vc')
+text(D_pt(1),  D_pt(2),  '  Vd')
 
 xlabel('Greitis V [m/s]')
 ylabel('Perkrovos koeficientas n')
