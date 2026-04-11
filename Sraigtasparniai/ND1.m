@@ -45,39 +45,45 @@ fprintf('w = %4.2f m/s \n', w)
 fprintf('R_max = %4.2f m \n', R_max)
 fprintf('F = %4.2f m^2 \n', F)
 fprintf('R = %4.2f m \n', R)
-fprintf('V = %4.2f m \n', V)
+fprintf('V = %4.2f m/s \n', V)
 
 %% KABOJIMUI REIKALINGA GALIA IR JEGA
 
+rho = 1.225; %[kg/m^3]
+
 % Traukos jega
 T = W_cr; %[N]
-T_ment = T/n_ment; %[N]
+T_ment = T / n_ment; %[N]
 
-% Galia
+% Indukuotas greitis kabojime
+v_i = sqrt(T / (2 * rho * F)); %[m/s]
 
-V_vid = (w * R)/2; %[m/s]
+% Ideali galia
+P_ideal = T * v_i / 1000; %[kW]
 
-P_ideal = (T * V_vid)/ 1000; %[kW]
-
+% Profilio galia = 25% idealios galios
 P_prof = 0.25 * P_ideal; %[kW]
 
+% Bendra rotoriui reikalinga galia
 P = P_ideal + P_prof; %[kW]
 
-P_vel = P/n_coef; %[kW]
+% Ivertinus transmisijos NK
+P_vel = P / n_coef; %[kW]
 
+% Su 20% rezervu
 P_gal = 1.2 * P_vel; %[kW]
 
 P_gal_AG = P_gal / 0.7355; %[AG]
 
 fprintf('T = %4.2f N \n', T)
 fprintf('T_ment = %4.2f N \n', T_ment)
-fprintf('V_vid = %4.2f m/s \n', V_vid)
+fprintf('v_i = %4.2f m/s \n', v_i)
 fprintf('P_ideal = %4.2f kW \n', P_ideal)
 fprintf('P_prof = %4.2f kW \n', P_prof)
 fprintf('P = %4.2f kW \n', P)
 fprintf('P_vel = %4.2f kW \n', P_vel)
 fprintf('P_gal = %4.2f kW \n', P_gal)
-
+fprintf('P_gal_AG = %4.2f AG \n', P_gal_AG)
 %% IRAZU SKAICIAVIMAS
 
 %Saknyje
@@ -134,7 +140,7 @@ fprintf('L_blade = %4.2f N \n', L_blade)
 %% SKERSINE JEGA Q(x)
 % Q(x) = integral nuo x iki R q(s) ds
 
-Q = flip(cumtrapz(flip(x), flip(q))); %[N]
+Q = -flip(cumtrapz(flip(x), flip(q))); %[N]
 Q_root = Q(1);
 
 fprintf('Q_root = %4.2f N \n', Q_root)
@@ -149,7 +155,7 @@ title('Skersines jegos pasiskirstymas menteje')
 %% LENKIMO MOMENTAS M(x)
 % M(x) = integral nuo x iki R Q(s) ds
 
-M = flip(cumtrapz(flip(x), flip(Q))); %[N*m]
+M = -flip(cumtrapz(flip(x), flip(Q))); %[N*m]
 M_root = M(1);
 
 fprintf('M_root = %4.2f N*m \n', M_root)
