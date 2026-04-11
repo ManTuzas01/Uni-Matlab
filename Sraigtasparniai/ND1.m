@@ -1,4 +1,74 @@
-clc
+R < R_max == 5.35 m < 6.29 m 
+w = 41.36 m/s 
+R_max = 6.29 m 
+F = 89.93 m^2 
+R = 5.35 m 
+V = 221.31 m/s 
+T = 24525.00 N 
+T_ment = 8175.00 N 
+v_i = 10.55 m/s 
+P_ideal = 258.75 kW 
+P_prof = 64.69 kW 
+P = 323.44 kW 
+P_vel = 359.38 kW 
+P_gal = 431.25 kW 
+P_gal_AG = 586.34 AG 
+Nx_root = 269376.35 N 
+L_raw = 5296.50 N 
+scale = 1.5435 
+L_blade = 8175.00 N 
+Q_root = 8175.00 N 
+M_root = 28429.74 N*m 
+
+--- SUJUNGIMO APKROVOS ---
+Nx_root = 269376.35 N
+Q_root  =  8175.00 N
+Vienam varztui tenkanti rezultuojanti apkrova F_bolt = 134750.18 N
+
+--- VARZTO PARINKIMAS ---
+Minimalus varzto skersmuo is kirpimo =  16.91 mm
+Parinktas standartinis varzto skersmuo =  18.00 mm
+Skyles skersmuo =  19.00 mm
+
+--- VARZTO KIRPIMO PATIKRA ---
+Tikroji varzto kirpimo itempa =   264.77 MPa
+Leistina varzto kirpimo itempa =   300.00 MPa
+
+--- BEARING PATIKRA / REIKALINGI STORIAI ---
+Minimalus centrines saknies dalies storis t_root_req =  28.37 mm
+Pasirinktas centrines dalies storis t_root =  20.00 mm
+Minimalus vienos auseles storis t_lug_req =  28.37 mm
+Pasirinktas vienos auseles storis t_lug =  15.00 mm
+Bearing itempa centrineje dalyje =   354.61 MPa
+Bearing itempa auselese          =   472.81 MPa
+Leistina bearing itempa         =   250.00 MPa
+
+--- NETTO PJUVIO TEMPIMO PATIKRA ---
+Minimalus saknines dalies plotis b_root_req =  52.69 mm
+
+--- KRASHTO ISPLESIMO (SHEAR-OUT) PATIKRA ---
+Minimalus krasto atstumas centrinei daliai e_root_req =  22.46 mm
+Minimalus krasto atstumas auselese e_lug_req          =  29.94 mm
+
+---  JUNGTIES MATMENYS ---
+ varzto skersmuo d        =  18.00 mm
+ skyles skersmuo d0       =  19.00 mm
+ krasto atstumas e        =  36.00 mm
+ atstumas tarp skyliu s   =  63.00 mm
+ saknines dalies plotis b =  72.00 mm
+ auseles aukstis h        =  91.00 mm
+ jungties ilgis L         = 135.00 mm
+Pasirinktas centrines dalies storis      =  20.00 mm
+Pasirinktas vienos auseles storis        =  15.00 mm
+
+--- SAUGOS KOEFICIENTAI ---
+SF varzto kirpimui              =   1.13
+SF bearing centrineje dalyje   =   0.71
+SF bearing auselese            =   0.53
+SF netto tempimui              =   1.57
+SF shear-out centrineje dalyje =   1.60
+SF shear-out auselese          =   1.20
+>> clc
 
 %% INPUTS
 
